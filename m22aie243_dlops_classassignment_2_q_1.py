@@ -86,7 +86,7 @@ mlp_writer = SummaryWriter('logs/mlp')
 cnn_writer = SummaryWriter('logs/cnn')
 
 # Train MLP model
-def train_mlp(model, criterion, optimizer, epochs=10):
+def train_mlp(model, criterion, optimizer, epochs=5):
     model.train()
     for epoch in range(epochs):
         running_loss = 0.0
