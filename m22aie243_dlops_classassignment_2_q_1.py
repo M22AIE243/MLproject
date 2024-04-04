@@ -54,20 +54,26 @@ class MLP(nn.Module):
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3)
-        self.fc1 = nn.Linear(64*4*4, 128)  # Adjusted linear layer input size
-        self.fc2 = nn.Linear(128, 10)      # Add the missing fc2 layer
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)  # Added padding to the convolutional layers
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.fc1 = nn.Linear(128*4*4, 128)                      # Adjusted linear layer input size
+        self.fc2 = nn.Linear(128, 64)                           # Changed the size of the second fully connected layer
+        self.fc3 = nn.Linear(64, 10)                            # Added an additional fully connected layer
 
     def forward(self, x):
         x = torch.relu(self.conv1(x))
         x = torch.max_pool2d(x, 2)
         x = torch.relu(self.conv2(x))
         x = torch.max_pool2d(x, 2)
-        x = x.view(-1, 64*4*4)  # Reshape to match the correct size
+        x = torch.relu(self.conv3(x))
+        x = torch.max_pool2d(x, 2)
+        x = x.view(-1, 128*4*4)                                  # Reshape to match the correct size
         x = torch.relu(self.fc1(x))
-        x = self.fc2(x)
+        x = torch.relu(self.fc2(x))                              # Apply ReLU activation to the second fully connected layer
+        x = self.fc3(x)
         return x
+
 
 # Define device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -86,7 +92,7 @@ mlp_writer = SummaryWriter('logs/mlp')
 cnn_writer = SummaryWriter('logs/cnn')
 
 # Train MLP model
-def train_mlp(model, criterion, optimizer, epochs=10):
+def train_mlp(model, criterion, optimizer, epochs=5):
     model.train()
     for epoch in range(epochs):
         running_loss = 0.0
